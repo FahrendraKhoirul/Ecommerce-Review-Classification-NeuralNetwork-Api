@@ -3,7 +3,7 @@ import preprocessing as pre
 import pickle
 
 app = Flask(__name__)
-tfidf_model = pickle.load(open('tfidf_model.pkl', 'rb'))
+tfidf_model = pickle.load(open('/tfidf_model.pkl', 'rb'))
 
 
 @app.route('/', methods=['GET'])

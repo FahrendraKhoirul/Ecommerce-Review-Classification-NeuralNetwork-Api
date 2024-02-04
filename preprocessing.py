@@ -2,7 +2,7 @@ import Sastrawi.Stemmer.StemmerFactory as StemmerFactory
 
 
 # load stopwords from txt file
-with open('stopwords_id_satya.txt', 'r') as file:
+with open('/stopwords_id_satya.txt', 'r') as file:
     my_stopwords = file.read().splitlines()
 
 
