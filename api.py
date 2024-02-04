@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
 import preprocessing as pre
 import pickle
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 try:
     with open('tfidf_model.pkl', 'rb') as f:
