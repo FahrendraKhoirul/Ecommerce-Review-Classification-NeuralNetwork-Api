@@ -3,7 +3,16 @@ import preprocessing as pre
 import pickle
 
 app = Flask(__name__)
-tfidf_model = pickle.load(open('/tfidf_model.pkl', 'rb'))
+
+try:
+    with open('tfidf_model.pkl', 'rb') as f:
+        tfidf_model = pickle.load(f)
+except FileNotFoundError:
+    print("The file 'tfidf_model.pkl' was not found.")
+except pickle.UnpicklingError:
+    print("Could not unpickle the object. The file might be corrupted.")
+except Exception as e:
+    print(f"An unexpected error occurred: {e}")
 
 
 @app.route('/', methods=['GET'])
