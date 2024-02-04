@@ -1,5 +1,4 @@
 import Sastrawi.Stemmer.StemmerFactory as StemmerFactory
-import pickle
 
 
 # load stopwords from txt file
