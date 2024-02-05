@@ -27,6 +27,7 @@ def predict():
     sentence = data
     preprocess_output = pre.preprocess(sentence)
     tfidf_vector = tfidf_model.transform(preprocess_output)
+    top_words = tfidf_model.getTopWord(tfidf_vector, 5)
 
     #  make result that contain sentence, preprocess_output, and tfidf_vector
     result = {
@@ -34,7 +35,8 @@ def predict():
         "data": {
         'sentence': sentence,
         'preprocess': preprocess_output,
-        'tfidf': tfidf_vector.tolist()
+        'tfidf': tfidf_vector.tolist(),
+        'top_words': top_words
         }
     }
 

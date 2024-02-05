@@ -67,10 +67,27 @@ class TFIDF:
         tfidf_vector = np.multiply(tf_vector, self.idf_vector)
         return tfidf_vector
     
+    def getTopWord(self, transform_tfidf_vector, n = 5):
+        # return index of top 5 word
+        topWords = np.argsort(transform_tfidf_vector)[::-1][:n]
+        result = []
+        for i in topWords:
+            if transform_tfidf_vector[i] != 0:
+                result.append(
+                    {
+                        "word": self.word_list[i],
+                        "score": transform_tfidf_vector[i]
+                    }
+                )
+        return result 
+    
 
 
 if __name__ == "__main__":
     data = ["hello hello down there", "hello up there", "hello down there asd apa iya ahha", "hello up there"]
     tfidf = TFIDF(data)
-    print(tfidf.transform("hello up there"))
+    print(tfidf.word_list)
+    tr = tfidf.transform("hello up there")
+    res = tfidf.getTopWord(tfidf.transform("hello up there"))
+    print(res)
 
