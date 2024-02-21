@@ -67,6 +67,13 @@ class TFIDF:
         tfidf_vector = np.multiply(tf_vector, self.idf_vector)
         return tfidf_vector
     
+    def transform_batch(self, batch):
+        result = []
+        for sentence in batch:
+            tf_vector = self.transform(sentence)
+            result.append(tf_vector)
+        return result
+    
     def getTopWord(self, transform_tfidf_vector, n = 5):   
         # return index of top 5 cord
         topWords = np.argsort(transform_tfidf_vector)[::-1][:n]
