@@ -42,8 +42,9 @@ class NeuralNetwork:
         # self.print_info(dZ2, "dZ2")
         dW2 = 1/m * dZ2.dot(A1.T)
         db2 = 1/m * np.sum(dZ2, 1)
-        #  before => dZ1 =  self.W2.T.dot(dZ2) * self.deriv_relu(Z1) 
-        dZ1 = self.deriv_relu(Z1) * self.W2.T.dot(dZ2) 
+        #  before => dZ1 =  self.W2.T.dot(dZ2) * self.deriv_relu(Z1)
+        dZ1 =  self.W2.T.dot(dZ2) * self.deriv_relu(Z1) 
+        # dZ1 = self.deriv_relu(Z1) * self.W2.T.dot(dZ2) 
         dW1 = 1/m * dZ1.dot(X.T)
         db1 = 1/m * np.sum(dZ1, 1)
         return dW1, db1, dW2, db2
@@ -67,8 +68,7 @@ class NeuralNetwork:
             Z1, A1, Z2, A2 = self.forward(X)
             dW1, db1, dW2, db2 = self.backward(X, Y, Z1, A1, Z2, A2)
             self.update_weight_bias(dW1, db1, dW2, db2, learning_rate)
-
-            cost = -np.mean(Y * np.log(A2))
+            cost = -np.mean(self.one_hot_encode(Y) * np.log(A2))
             predictions = np.argmax(A2, 0)
             train_acc = np.mean(predictions == Y)
 
