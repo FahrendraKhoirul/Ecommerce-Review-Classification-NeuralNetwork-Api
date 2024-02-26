@@ -12,6 +12,7 @@ class NeuralNetwork:
         self.input_dataset = None
         self.target_dataset = None
         self.epochs = None
+        self.input_layer = None
         
 
     def init(self):
@@ -31,12 +32,17 @@ class NeuralNetwork:
     def create_weight_matrix(self):
         self.weight_matrix = []
         # input layer
-        self.weight_matrix.append(np.random.rand(self.hidden_layer_sequence[0], self.input_size) * 2 - 1) # random number between -1 and 1
+        self.weight_matrix.append(np.random.rand(self.hidden_layer_sequence[0], self.input_size)  / np.sqrt(self.input_size) * 2 - 1) # random number between -1 and 1
         # hidden layer
         for i in range(len(self.hidden_layer_sequence) - 1):
-            self.weight_matrix.append(np.random.rand(self.hidden_layer_sequence[i + 1], self.hidden_layer_sequence[i]) * 2 - 1) # random number between -1 and 1
+            fan_in = self.hidden_layer_sequence[i]
+            fan_out = self.hidden_layer_sequence[i + 1]
+            limit = np.sqrt(6 / (fan_in + fan_out))  # Uniform distribution limit
+            self.weight_matrix.append(np.random.uniform(-limit, limit, size=(fan_out, fan_in)))
+
+            # self.weight_matrix.append(np.random.rand(self.hidden_layer_sequence[i + 1], self.hidden_layer_sequence[i])  / np.sqrt(self.input_size) * 2 - 1) # random number between -1 and 1
         # output layer
-        self.weight_matrix.append(np.random.rand(self.output_size,self.hidden_layer_sequence[-1]) * 2 - 1) # random number between -1 and 1
+        self.weight_matrix.append(np.random.rand(self.output_size,self.hidden_layer_sequence[-1])  / np.sqrt(self.hidden_layer_sequence[-1]) * 2 - 1) # random number between -1 and 1
         
     def create_bias_matrix(self):
         self.bias_matrix = []
@@ -53,13 +59,18 @@ class NeuralNetwork:
         return 1 / (1 + np.exp(-x))
     
     def softmax(self, x):
+        x = x - np.max(x)
         exp_x = np.exp(x)
         return exp_x / exp_x.sum(axis=0, keepdims=True)
+    
     
     def derivative_relu(self, x):
         return 1 * (x > 0)
     
     def derivative_softmax(self, x):
+        return x * (1 - x)
+    
+    def derivative_sigmoid(self, x):
         return x * (1 - x)
     
     def categorical_crossentropy_loss(self, y_true, y_pred):
@@ -92,11 +103,11 @@ class NeuralNetwork:
     # =============== Vectorization ===============
         
     def feedforward_vectorization_mode(self, tfidf_input_vector):
-        self.input_data = np.array(tfidf_input_vector).reshape(-1,1)
+        self.input_layer = np.array(tfidf_input_vector).reshape(-1,1)
         self.hidden_layer = []
         
 
-        x = self.input_data
+        x = self.input_layer
         # self.print_info(x, "Input Data")
         w1 = self.weight_matrix[0]
         # self.print_info(w1, "Weight Matrix 1")
@@ -127,12 +138,19 @@ class NeuralNetwork:
     def backpropagation_vectorization_mode(self, target_data, output_layer):
         # calculate error (Cross Entropy)
         error = self.categorical_crossentropy_loss(target_data, output_layer)
+        # individual_errors = np.subtract(output_layer, target_data.reshape(-1,1))
+        # error = np.sum(individual_errors)
+        # self.print_info(target_data, "Target Data")
+        # self.print_info(output_layer, "Output Layer")
+        # error =  output_layer - target_data
         # self.print_info(error, "Error")
 
         #========  OUTPUT LAYER (Hidden Layer 2 in my Skripsi)  ==================
         # 𝛿2=(𝑦−ℎ2)𝜎′(ℎ2)
         # self.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               lf.derivative_softmax(output_layer), "der Output Layer")
-        delta_2 = error * self.derivative_softmax(output_layer)
+        # delta_2 = error * self.derivative_softmax(output_layer)
+        # target_data = target_data.reshape(-1,1)
+        delta_2 = output_layer - target_data
         # self.print_info(delta_2, "Delta 2")
 
         # 𝑑𝐿𝑑𝑉= 𝛿2(ℎ1)𝑇
@@ -152,11 +170,11 @@ class NeuralNetwork:
         # self.print_info(delta_1, "Delta 1 sebelum relu")
         # self.print_info(self.derivative_relu(self.hidden_layer[0]), "Derivative Relu Hidden Layer 1")
 
-        delta_1 = delta_1 * self.derivative_relu(self.hidden_layer[0])
+        delta_1 = delta_1 * self.derivative_sigmoid(self.hidden_layer[0])
         # self.print_info(delta_1, "Delta 1 setelah relu")
 
         # 𝑑𝐿𝑑𝑊= 𝛿1𝑥
-        dw1 = np.dot(delta_1, self.input_data.T)
+        dw1 = np.dot(delta_1, self.input_layer.T)
         # self.print_info(dw1, "Gradient Weight 1")
 
         # 𝑑𝐿𝑑𝑏= 𝛿1
@@ -179,33 +197,54 @@ class NeuralNetwork:
         
         sum_error = -np.sum(error)
         return sum_error, dw2, db2, dw1, db1
+    
+    def backpropagation_2(self, target_data, output_layer):
+        # calculate error (Cross Entropy)
+        error = self.categorical_crossentropy_loss(target_data, output_layer)
+        
+        #========  OUTPUT LAYER (Hidden Layer 2 in my Skripsi)  ==================
+        # 𝛿2=(𝑦−ℎ2)𝜎′(ℎ2)
+        target_data = target_data.reshape(-1,1)
+        dz2 = output_layer - target_data
+        # self.print_info(dz2, "Delta 2")
+        dw2 = np.dot(dz2, self.hidden_layer[0].T)
+        # self.print_info(dw2, "Gradient Weight 2")
+        db2 = dz2
+        da1 = np.dot(self.weight_matrix[-1].T, dz2)
 
-    def train_vectorization_mode(self, input_dataset, target_data, epochs, learning_rate=0.001):
-        self.learning_rate = learning_rate
-        self.input_data = input_dataset
-        self.target_data = self.one_hot_encode(target_data)
-        print("Input Data: ", self.input_data)
-        print("Target Data: ", self.target_data)
-        self.epochs = epochs
+        dz1 = da1 * self.derivative_sigmoid(self.hidden_layer[0])
+        dw1 = np.dot(dz1, self.input_layer.T)
+        db1 = dz1
 
-        history = []
+        sum_error = -np.sum(error)
+        return sum_error, dw2, db2, dw1, db1
 
-        for epoch in range(epochs):
-            output_layer = self.feedforward_vectorization_mode(input_dataset)
-            error = self.backpropagation_vectorization_mode(target_data, output_layer)
-            history.append(error)
-            print("Epoch ", epoch, "Error: ", error)
+    # def train_vectorization_mode(self, input_dataset, target_data, epochs, learning_rate=0.001):
+    #     self.learning_rate = learning_rate
+    #     self.input_data = input_dataset
+    #     self.target_data = self.one_hot_encode(target_data)
+    #     print("Input Data: ", self.input_data)
+    #     print("Target Data: ", self.target_data)
+    #     self.epochs = epochs
+
+    #     history = []
+
+    #     for epoch in range(epochs):
+    #         output_layer = self.feedforward_vectorization_mode(input_dataset)
+    #         error = self.backpropagation_vectorization_mode(target_data, output_layer)
+    #         history.append(error)
+    #         print("Epoch ", epoch, "Error: ", error)
             
-        return history
+    #     return history
     
     def train(self, input_dataset, target_dataset, epochs, learning_rate=0.001):
         self.learning_rate = learning_rate
-        self.input_data = input_dataset
-        self.target_data = target_dataset
+        self.input_dataset = input_dataset
+        self.target_dataset = target_dataset
         self.epochs = epochs
 
         history = []
-        total_data = len(input_dataset)
+        total_data = input_dataset.shape[0]
         total_error = 0
         
         # create copy of weight and bias with zero value
@@ -216,9 +255,10 @@ class NeuralNetwork:
 
         # for epoch in range(epochs):
         for epoch in range(epochs):
+            total_error = 0
             for i in range(input_dataset.shape[0]):
                 output_layer = self.feedforward_vectorization_mode(input_dataset.iloc[i])
-                backprop_error, backprop_dw2, backprop_db2, backprop_dw1, backprop_db1 = self.backpropagation_vectorization_mode(target_dataset.iloc[i], output_layer)
+                backprop_error, backprop_dw2, backprop_db2, backprop_dw1, backprop_db1 = self.backpropagation_2(target_dataset.iloc[i], output_layer)
                 
                 # sum error, weight, and bias
                 total_error += backprop_error
@@ -228,20 +268,25 @@ class NeuralNetwork:
                 db1 += backprop_db1
 
             # calculate average error
-            total_error = total_error / total_data
-            history.append(total_error)
-            print("Epoch ", epoch, "Error: ", total_error)
-            total_error = 0
+            average_error = total_error / total_data
+            history.append(average_error)
+            print("Epoch ", epoch, "Error: ", average_error)
+            
+            # Update weight and bias
+            self.weight_matrix[-1] -=  (dw2 * self.learning_rate / total_data)
+            self.bias_matrix[-1] = self.bias_matrix[-1] - (db2 * self.learning_rate / total_data)
+            self.weight_matrix[-2] -= (dw1 * self.learning_rate / total_data)
+            self.bias_matrix[-2] = self.bias_matrix[-2] - (db1 * self.learning_rate / total_data)
 
-             # Update Weight and Bias
-            dw2 = dw2 / total_data
-            db2 = db2 / total_data
-            dw1 = dw1 / total_data
-            db1 = db1 / total_data
+            # self.weight_matrix[-1] -=  (dw2 * self.learning_rate / total_data)
+            # self.bias_matrix[-1] = np.array(self.bias_matrix[-1]) - (db2 * self.learning_rate / total_data)
+            # self.weight_matrix[-2] -= (dw1 * self.learning_rate / total_data)
+            # self.bias_matrix[-2] = np.array(self.bias_matrix[-2]) - (db1 * self.learning_rate / total_data)
 
-            self.weight_matrix[-1] -=  dw2 * self.learning_rate
-            self.bias_matrix[-1] = np.array(self.bias_matrix[-1]) - db2 * self.learning_rate
-            self.weight_matrix[-2] -= dw1 * self.learning_rate
-            self.bias_matrix[-2] = np.array(self.bias_matrix[-2]) - db1 * self.learning_rate
+            # Reset gradient accumulators for the next epoch
+            dw1 = np.zeros(self.weight_matrix[0].shape)
+            db1 = np.zeros(self.bias_matrix[0].shape)
+            dw2 = np.zeros(self.weight_matrix[-1].shape)
+            db2 = np.zeros(self.bias_matrix[-1].shape)
 
         return history
