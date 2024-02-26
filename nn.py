@@ -6,8 +6,10 @@ class NeuralNetwork:
         self.hidden_size = hidden_size
         self.output_size = output_size
 
-        self.W1 = np.random.randn(self.hidden_size, self.input_size)
-        self.W2 = np.random.randn(self.output_size, self.hidden_size) 
+        np.random.seed(seed=42) # for reproducibility
+
+        self.W1 = np.random.randn(self.hidden_size, self.input_size) * np.sqrt(2 / (input_size + hidden_size))
+        self.W2 = np.random.randn(self.output_size, self.hidden_size) * np.sqrt(2 / (hidden_size + output_size))
         self.b1 = np.random.randn(self.hidden_size, 1) 
         self.b2 = np.random.randn(self.output_size, 1) 
 
@@ -68,7 +70,7 @@ class NeuralNetwork:
             Z1, A1, Z2, A2 = self.forward(X)
             dW1, db1, dW2, db2 = self.backward(X, Y, Z1, A1, Z2, A2)
             self.update_weight_bias(dW1, db1, dW2, db2, learning_rate)
-            cost = -np.mean(self.one_hot_encode(Y) * np.log(A2))
+            cost = -np.mean(self.one_hot_encode(Y) * np.log(A2 + 1e-8))
             predictions = np.argmax(A2, 0)
             train_acc = np.mean(predictions == Y)
 
