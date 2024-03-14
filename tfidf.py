@@ -2,6 +2,10 @@ import numpy as np
 
 class TFIDF:
     def __init__(self, data):
+        '''
+        data: list of string (sentence), format must be in array of string,
+        not in dataframe or list of list.
+        '''
         self.data = data
         self.word_list = self.create_word_list()
         self.word_count_list = self.create_word_count_list()
@@ -88,6 +92,7 @@ class TFIDF:
                 )
         return result 
     
+        
 
 
 if __name__ == "__main__":

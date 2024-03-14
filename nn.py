@@ -6,7 +6,8 @@ class NeuralNetwork:
         self.hidden_size = hidden_size
         self.output_size = output_size
 
-        np.random.seed(seed=42) # for reproducibility
+        # create 
+        np.random.seed(seed=42) # for reproducibility5
 
         self.W1 = np.random.randn(self.hidden_size, self.input_size) * np.sqrt(2 / (input_size + hidden_size))
         self.W2 = np.random.randn(self.output_size, self.hidden_size) * np.sqrt(2 / (hidden_size + output_size))
