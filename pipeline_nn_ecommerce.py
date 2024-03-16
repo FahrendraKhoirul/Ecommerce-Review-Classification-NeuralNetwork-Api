@@ -58,7 +58,8 @@ def pipeline_nn_ecommerce(model, text):
     nn_W2 = nn_model.W2
     nn_b1 = nn_model.b1
     nn_b2 = nn_model.b2
-    prediction = np.argmax(nn_A2)
+    prediction = np.argmax(nn_A2).item()
+    print("prediction type: ", type(prediction))
 
     result = {
         "success": True,
@@ -90,6 +91,3 @@ if __name__ == "__main__":
     text = "pengiriman cepat banget, bagus juga barangnya"
     model = 70
     result = pipeline_nn_ecommerce(model, text)
-    print(result["data"]["sentence"])
-    print(result["data"]["preprocess"])
-    print(result["data"]["top_words"])
