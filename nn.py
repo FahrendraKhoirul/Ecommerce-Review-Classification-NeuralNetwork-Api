@@ -30,11 +30,12 @@ class NeuralNetwork:
         return np.where(z > 0, 1, 0)
     
     def forward(self, X):
+        A0 = X
         Z1 = np.dot(self.W1, X) + self.b1
         A1 = self.relu(Z1)
         Z2 = np.dot(self.W2, A1) + self.b2
         A2 = self.softmax(Z2)
-        return Z1, A1, Z2, A2
+        return A0, Z1, A1, Z2, A2
     
     def backward(self, X, Y, Z1, A1, Z2, A2):
         one_hot_Y = self.one_hot_encode(Y)
@@ -68,7 +69,7 @@ class NeuralNetwork:
         best_epoch = 0
         no_improvement_since = 0
         for epoch in range(epochs):
-            Z1, A1, Z2, A2 = self.forward(X)
+            _, Z1, A1, Z2, A2 = self.forward(X)
             dW1, db1, dW2, db2 = self.backward(X, Y, Z1, A1, Z2, A2)
             self.update_weight_bias(dW1, db1, dW2, db2, learning_rate)
             cost = -np.mean(self.one_hot_encode(Y) * np.log(A2 + 1e-8))
@@ -89,7 +90,7 @@ class NeuralNetwork:
             # if no_improvement_since >= patience:
             #     print(f'Early stopping at epoch {epoch + 1} due to no improvement in training loss for {patience} epochs.')
             #     break
-
+    
         return history_cost, history_acc, best_epoch
 
     
@@ -112,8 +113,11 @@ class NeuralNetwork:
 
     def predict(self, X):
         '''Predict the output based on the given input data.'''
-        Z1, A1, Z2, A2 = self.forward(X)
-        return np.argmax(A2, 0)
+        _, _, _, _, A2 = self.forward(X)
+        result = {
+            "probability": A2,
+            "prediction": np.argmax(A2, 0)
+        }
     
     def compute_loss(self, Y, Y_hat):
         '''Compute the loss between the true output and the predicted output.'''
