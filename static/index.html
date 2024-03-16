@@ -4,19 +4,62 @@
 		<title>Skripsi Fahrendra</title>
 		<script src="https://cdn.tailwindcss.com"></script>
 		<script>
-			document.getElementById('predictForm').addEventListener('submit', function(event) {
-				event.preventDefault();
-			
-				var sentence = document.getElementById('sentence').value;
-			
-				fetch('/predict?sentence=' + encodeURIComponent(sentence))
-					.then(response => response.json())
-					.then(data => {
-						// Do something with the data
-						console.log(data);
+			document.addEventListener("DOMContentLoaded", function () {
+				var dataFetch = null;
+				isSubmit = false;
+				document
+					.getElementById("predictForm")
+					.addEventListener("submit", function (event) {
+						event.preventDefault();
+						console.log("TESS");
+						var sentence = document.getElementById("sentence").value;
+						if (sentence.length == 0) {
+							alert("Please input your sentence");
+							return;
+						}
+						isSubmit = true;
+						fetch("/predict?sentence=" + encodeURIComponent(sentence))
+							.then((response) => response.json())
+							.then((data) => {
+								// Do something with the data
+								class_predictions = data["data"]["nn_output"]["A2"];
+								class_prediction = data["data"]["prediction"];
+								// map class prediction to human readable
+								if (class_prediction == 0) {
+									class_prediction = "Product";
+								} else if (class_prediction == 1) {
+									class_prediction = "Customer Service";
+								} else if (class_prediction == 2) {
+									class_prediction = "Shipping/Delivery";
+								}
+								document.getElementById("confidence").textContent = "Result";
+								document.getElementById("product_class").textContent = "Product";
+								document.getElementById("product_score").textContent = class_predictions
+									? class_predictions[0][0].toFixed(2)
+									: "";
+								document.getElementById("customerService_class").textContent =
+									"Customer Service";
+								document.getElementById("customerService_score").textContent =
+									class_predictions ? class_predictions[1][0].toFixed(2) : "";
+								document.getElementById("shippingDelivery_class").textContent =
+									"Shipping/Delivery";
+								document.getElementById("shippingDelivery_score").textContent =
+									class_predictions ? class_predictions[2][0].toFixed(2) : "";
+								document.getElementById("result").textContent = JSON.stringify(
+									class_prediction,
+									null,
+									2
+								);
+								dataFetch = data;
+								isSubmit = false;
+								// add border to result
+								document
+									.getElementById("border_confidence")
+									.classList.add("border-2", "border-indigo-300");
+							});
 					});
 			});
-			</script>
+		</script>
 	</head>
 	<body>
 		<div class="bg-white">
@@ -49,7 +92,7 @@
 						"
 					></div>
 				</div>
-				<div class="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
+				<div class="mx-auto max-w-2xl py-32 sm:py-48 lg:py-48">
 					<div class="hidden sm:mb-8 sm:flex sm:justify-center">
 						<div
 							class="relative rounded-full px-3 py-1 text-sm leading-6 text-gray-600 ring-1 ring-gray-900/10 hover:ring-gray-900/20"
@@ -66,32 +109,79 @@
 							E-Commerce Review Classification API
 						</h1>
 						<p class="mt-4 text-lg leading-8 text-gray-600">
-							Welcome to E-commerce Review Classification API, created by Fahrendra
-							Khoirul Ihtada. This version is for testing the predict function only.</br>
-							
+							Welcome to E-commerce Review Classification API, created by
+							<span class="text-indigo-600">Fahrendra Khoirul Ihtada</span>. This API
+							is created for my undergraduate thesis. This API is created to classify
+							e-commerce review into 3 classes: Product, Customer Service, and
+							Shipping/Delivery. This version just for testing purpose, so it may not
+							be stable.
 						</p>
 						<!-- describe enpoint /predict with parameter sentence -->
 						<p class="mt-4 text-lg leading-8 text-gray-600">
-							Please use <span class="bg-indigo-600 text-white px-2 py-1 rounded">/predict</span> endpoint to use the model. Thank you! </br>
-							Example endpoint: <span class="bg-indigo-600 text-white px-2 py-1 rounded">/predict?sentence=...</span>
+							Please use
+							<span class="bg-indigo-600 text-white px-2 py-1 rounded">/predict</span>
+							endpoint to use the model. Thank you! <br />
+							Example endpoint:
+							<span class="bg-indigo-600 text-white px-2 py-1 rounded"
+								>/predict?sentence=...</span
+							>
 						</p>
 						<!-- header let try classify your sentence -->
-						<h2 class="mt-8 text-lg leading-8 text-gray-600 font-semibold">
+						<h2 class="mt-8 text-lg leading-8 text-gray-900 font-bold">
 							Let's try to classify your sentence!
 						</h2>
-						<form id="predictForm" class="mt-2" action="/predict" method="GET" target="_blank">
+						<!-- create example sentence  -->
+						<p class="text-lg leading-8 text-gray-600">
+							Example sentence: "Barangnya keren, sesuai deskripsi. Keren banget
+							pokoknya!"
+						</p>
+
+						<form id="predictForm" class="mt-4" method="GET">
 							<input
 								type="text"
 								id="sentence"
 								name="sentence"
-								class="rounded-md bg-gray-100 px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+								class="mx-2 rounded-md bg-gray-100 px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 								placeholder="Input your sentence here"
 							/>
 							<button
 								type="submit"
 								class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-							>Submit</button>
+							>
+								Submit
+							</button>
 						</form>
+						<!-- show confidence -->
+						<!-- Confidence -->
+						<div class="mt-4 max-w-md mx-auto">
+							<h2 id="confidence" class="text-center font-bold text-lg"></h2>
+							<div id="border_confidence" class="mt-2 rounded-lg p-4">
+								<div class="grid grid-cols-2 gap-4">
+									<div
+										id="product_class"
+										class="text-left font-semibold text-gray-600"
+									></div>
+									<div id="product_score" class="text-right text-gray-600"></div>
+									<div
+										id="customerService_class"
+										class="text-left font-semibold text-gray-600"
+									></div>
+									<div id="customerService_score" class="text-right text-gray-600"></div>
+									<div
+										id="shippingDelivery_class"
+										class="text-left font-semibold text-gray-600"
+									></div>
+									<div
+										id="shippingDelivery_score"
+										class="text-right text-gray-600"
+									></div>
+								</div>
+							</div>
+						</div>
+						<!-- show result -->
+						<div class="mt-4">
+							<div id="result" class="p-4 mt-4 text-lg font-bold rounded"></div>
+						</div>
 					</div>
 				</div>
 				<div
