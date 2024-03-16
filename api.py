@@ -44,7 +44,7 @@ def index():
 @app.route('/predict', methods=['GET'])
 def predict():
     data = request.args.get('sentence')
-    result = my_pipeline.pipeline_nn_ecommerce(90, data)
+    result = my_pipeline.pipeline_nn_ecommerce(80, data)
     return jsonify(result)
 
 
