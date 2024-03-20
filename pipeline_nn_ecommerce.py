@@ -87,7 +87,21 @@ def pipeline_nn_ecommerce(model, text):
     }
     return result
 
+def just_prediction(text):
+    tfidf_model = tfidf_model_80
+    nn_model = nn_model_80
+
+    text_clean = pre.preprocess(text)
+    text_tfidf_vector = tfidf_model.transform(text_clean)
+    text_tfidf_vector_reshape = text_tfidf_vector.reshape(-1, 1)
+    _, _, _, _, nn_A2 = nn_model.forward(text_tfidf_vector_reshape)
+
+    prediction = np.argmax(nn_A2).item()
+    map_label = {0: 'Product', 1: 'Customer Service', 2: 'Shipping/Delivery'}
+    result = map_label[prediction]
+    return result
+
 if __name__ == "__main__":
     text = "pengiriman cepat banget, bagus juga barangnya"
-    model = 70
+    model = 80
     result = pipeline_nn_ecommerce(model, text)

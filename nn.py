@@ -62,12 +62,10 @@ class NeuralNetwork:
         self.W2 -= learning_rate * dW2
         self.b2 -= learning_rate * np.reshape(db2, (self.output_size, 1))
 
-    def train(self, X, Y, epochs, learning_rate, patience=10):
+    def train(self, X, Y, epochs, learning_rate):
         '''Train the neural network using the given input and output data.\nPlease note the Y should be one-hot encoded.'''
         history_cost = []
         history_acc = []
-        best_epoch = 0
-        no_improvement_since = 0
         for epoch in range(epochs):
             _, Z1, A1, Z2, A2 = self.forward(X)
             dW1, db1, dW2, db2 = self.backward(X, Y, Z1, A1, Z2, A2)
@@ -81,17 +79,34 @@ class NeuralNetwork:
 
             print(f'Epoch {epoch + 1}/{epochs} - train cost: {cost:.4f}, train acc: {train_acc:.4f}')
 
-            # if cost <= min(history_cost):  # Check for non-increasing loss
-            #     best_epoch = epoch
-            #     no_improvement_since = 0
-            # else:
-            #     no_improvement_since += 1
-
-            # if no_improvement_since >= patience:
-            #     print(f'Early stopping at epoch {epoch + 1} due to no improvement in training loss for {patience} epochs.')
-            #     break
     
-        return history_cost, history_acc, best_epoch
+        return history_cost, history_acc
+    
+    def train_with_test(self, X, Y, X_test, Y_test, epochs, learning_rate):
+        '''Train the neural network using the given input and output data.\nPlease note the Y should be one-hot encoded.'''
+        history_train_cost = []
+        history_train_acc = []
+        history_test_acc = []
+        for epoch in range(epochs):
+            _, Z1, A1, Z2, A2 = self.forward(X)
+            dW1, db1, dW2, db2 = self.backward(X, Y, Z1, A1, Z2, A2)
+            self.update_weight_bias(dW1, db1, dW2, db2, learning_rate)
+            cost = -np.mean(self.one_hot_encode(Y) * np.log(A2 + 1e-8))
+            predictions = np.argmax(A2, 0)
+            train_acc = np.mean(predictions == Y)
+
+            history_train_cost.append(cost)
+            history_train_acc.append(train_acc)
+
+            # add predict training test
+            _, _, _, _, A2 = self.forward(X_test)
+            test_predictions = np.argmax(A2, 0)
+            test_acc = np.mean(test_predictions == Y_test)
+            history_test_acc.append(test_acc)
+
+            print(f'Epoch {epoch + 1}/{epochs} - train cost: {cost:.4f}, train acc: {train_acc:.4f}, - test acc: {test_acc:.4f}')
+    
+        return history_train_cost, history_train_acc, history_test_acc
 
     
     def one_hot_encode(self, Y):
