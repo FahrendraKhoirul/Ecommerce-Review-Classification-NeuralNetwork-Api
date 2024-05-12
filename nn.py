@@ -107,6 +107,38 @@ class NeuralNetwork:
             print(f'Epoch {epoch + 1}/{epochs} - train cost: {cost:.4f}, train acc: {train_acc:.4f}, - test acc: {test_acc:.4f}')
     
         return history_train_cost, history_train_acc, history_test_acc
+    
+    def train_until_cost_doesnt_change(self, X, Y, learning_rate):
+        '''Train the neural network using the given input and output data until the cost doesn't change.'''
+        history_cost = []
+        history_acc = []
+        cost = 0
+        epoch = 0
+        patience = 10
+        while True:
+            _, Z1, A1, Z2, A2 = self.forward(X)
+            dW1, db1, dW2, db2 = self.backward(X, Y, Z1, A1, Z2, A2)
+            self.update_weight_bias(dW1, db1, dW2, db2, learning_rate)
+            new_cost = -np.mean(self.one_hot_encode(Y) * np.log(A2 + 1e-8))
+            predictions = np.argmax(A2, 0)
+            train_acc = np.mean(predictions == Y)
+
+            history_cost.append(new_cost)
+            history_acc.append(train_acc)
+
+            print(f'Epoch {epoch + 1} - train cost: {new_cost:.6f}, train acc: {train_acc:.6f}')
+            # early stopping with patience
+            if abs(new_cost - cost) < 1e-5:
+                patience -= 1
+                if patience == 0:
+                    print('Cost has not changed for 10 epochs, stopping training.')
+                    break
+            else:
+                patience = 10
+            cost = new_cost
+            epoch += 1
+        return history_cost, history_acc
+    
 
     
     def one_hot_encode(self, Y):

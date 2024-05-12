@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-import pipeline_nn_ecommerce as my_pipeline
+import pipeline_nn_ecommerce_final as my_pipeline
 import numpy as np
 
 app = Flask(__name__)
@@ -16,7 +16,7 @@ def index():
 @app.route('/predict', methods=['GET'])
 def predict():
     data = request.args.get('sentence')
-    result = my_pipeline.pipeline_nn_ecommerce(80, data)
+    result = my_pipeline.pipeline_nn_ecommerce(data)
     return jsonify(result)
 
 if __name__ == '__main__':

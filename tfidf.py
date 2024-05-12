@@ -99,7 +99,7 @@ if __name__ == "__main__":
     data = ["hello hello down there", "hello up there", "hello down there asd apa iya ahha", "hello up there"]
     tfidf = TFIDF(data)
     print(tfidf.word_list)
-    tr = tfidf.transform("hello up there")
-    res = tfidf.getTopWord(tfidf.transform("hello up there"))
-    print(res)
+    tr = tfidf.transform("hello down there asd apa iya ahha")
+    # res = tfidf.getTopWord(tfidf.transform("hello down there asd apa iya ahha"))
+    print(tr)
 
