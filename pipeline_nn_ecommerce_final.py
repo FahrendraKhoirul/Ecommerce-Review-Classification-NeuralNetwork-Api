@@ -11,6 +11,7 @@ with open('TFIDF Model - 80 Final.pkl', 'rb') as f:
 # load Neural Network Model
 with open('NeuralNetwork_Model_B3.pkl', 'rb') as f:
     nn_model_B3 = pickle.load(f)
+    print("Neural Network Model Loaded")
 
 def pipeline_nn_ecommerce(text):
 
@@ -77,5 +78,5 @@ def just_prediction(text):
 
 if __name__ == "__main__":
     text = "pengiriman cepat banget, bagus juga barangnya"
-    result = pipeline_nn_ecommerce(text)
-    print(result)
+    result = just_prediction(text)
+    print("result", result)

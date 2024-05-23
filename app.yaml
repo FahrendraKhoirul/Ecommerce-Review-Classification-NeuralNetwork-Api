@@ -1,0 +1,6 @@
+runtime: python391  # Or the version of Python you are using
+entrypoint: gunicorn -b :$PORT api:app
+
+handlers:
+- url: /.*
+  script: auto
